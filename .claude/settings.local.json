@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node -e \"const {Client} = require\\(''@notionhq/client''\\); const n = new Client\\({auth:''test''}\\); console.log\\(Object.keys\\(n.dataSources\\)\\)\")",
+      "Bash(node -e \"const n = require\\(''@notionhq/client''\\); const c = new n.Client\\({auth: ''test''}\\); console.log\\(''blocks.children:'', Object.keys\\(c.blocks.children\\)\\)\")"
+    ]
+  }
+}
