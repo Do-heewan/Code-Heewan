@@ -1,6 +1,7 @@
 import Link from "next/link";
 import React from "react";
 import Particles from "./components/particles";
+import HeroTitle from "./components/heroTitle";
 import { getAboutPage } from "./lib/notion";
 
 import NotionPage from "./components/notionPage";
@@ -16,7 +17,7 @@ const navigation = [
   { name: "Contact", href: "/contact" },
 ];
 
-export const revalidate = 3600;
+export const revalidate = 60;
 
 export default async function Home() {
   const aboutMarkdown = await getAboutPage();
@@ -24,8 +25,8 @@ export default async function Home() {
   return (
     <div className="bg-black">
       {/* Hero Section */}
-      <section className="flex flex-col items-center justify-center w-screen h-screen bg-gradient-to-tl from-black via-zinc-600/20 to-black relative overflow-hidden">
-        <nav className="my-16 animate-fade-in">
+      <section className="relative isolate flex flex-col items-center justify-center w-full h-screen overflow-hidden bg-gradient-to-tl from-black via-zinc-600/20 to-black">
+        <nav className="my-16 animate-fade-in relative z-10">
           <ul className="flex items-center justify-center gap-4">
             {navigation.map((item) => (
               <Link
@@ -38,19 +39,17 @@ export default async function Home() {
             ))}
           </ul>
         </nav>
-        <div className="hidden w-screen h-px animate-glow md:block animate-fade-left bg-gradient-to-r from-zinc-300/0 via-zinc-300/50 to-zinc-300/0" />
+        <div className="hidden w-full h-px animate-glow md:block animate-fade-left bg-gradient-to-r from-zinc-300/0 via-zinc-300/50 to-zinc-300/0 relative z-10" />
         <Particles
-          className="absolute inset-0 -z-10 animate-fade-in"
+          className="pointer-events-none absolute inset-0 z-0 animate-fade-in"
           quantity={100}
         />
-        <h1 className="py-3.5 px-0.5 z-10 text-4xl text-transparent duration-1000 bg-white cursor-default text-edge-outline animate-title font-display sm:text-6xl md:text-9xl whitespace-nowrap bg-clip-text">
-          Code-Heewan
-        </h1>
-        <div className="hidden w-screen h-px animate-glow md:block animate-fade-right bg-gradient-to-r from-zinc-300/0 via-zinc-300/50 to-zinc-300/0" />
-        <div className="my-16 animate-fade-in" />
+        <HeroTitle>Code-Heewan</HeroTitle>
+        <div className="hidden w-full h-px animate-glow md:block animate-fade-right bg-gradient-to-r from-zinc-300/0 via-zinc-300/50 to-zinc-300/0 relative z-10" />
+        <div className="my-16 animate-fade-in relative z-10" />
 
         {/* Scroll indicator */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
+        <div className="absolute bottom-8 left-1/2 z-10 -translate-x-1/2 animate-bounce">
           <svg
             className="w-6 h-6 text-zinc-500"
             fill="none"
