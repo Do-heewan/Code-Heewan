@@ -7,9 +7,6 @@ import { getAboutPage } from "./lib/notion";
 import NotionPage from "./components/notionPage";
 import { NotionAPI } from "notion-client";
 
-const notion = new NotionAPI();
-const recordMap = await notion.getPage(process.env.NOTION_ABOUT_PAGE_ID!);
-
 const navigation = [
   { name: "Blog", href: "/blog" },
   { name: "Algorithms", href: "/algorithms" },
@@ -21,6 +18,8 @@ export const revalidate = 60;
 
 export default async function Home() {
   const aboutMarkdown = await getAboutPage();
+  const notion = new NotionAPI();
+  const recordMap = await notion.getPage(process.env.NOTION_ABOUT_PAGE_ID!);
 
   return (
     <div className="bg-black">
@@ -76,9 +75,6 @@ export default async function Home() {
 
           {aboutMarkdown ? (
             <article className="prose prose-invert prose-zinc max-w-none">
-              {/* <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                {aboutMarkdown}
-              </ReactMarkdown> */}
               <NotionPage recordMap={recordMap} />
             </article>
           ) : (
