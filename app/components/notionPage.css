@@ -1,0 +1,35 @@
+/* ────────────────────────────────────────────
+   react-notion-x 2열 블록 커스터마이징
+   .notion-about 래퍼 안에서만 적용됩니다.
+──────────────────────────────────────────── */
+
+/* 2열 행 레이아웃 */
+.notion-about .notion-row {
+  display: flex;
+  /* align-items: center;   세로 가운데 정렬 (필요 시 flex-start로 변경) */
+  /* gap: 1rem; */
+}
+
+/* 이미지가 들어있는 열: 원하는 너비 비율로 조정 */
+.notion-about .notion-column:has(.notion-asset-wrapper) {
+  flex: 0 0 35%;         /* 이미지 열 너비 — 이 값을 바꿔서 비율 조정 */
+  max-width: 30%;
+}
+
+/* 텍스트가 들어있는 열 */
+.notion-about .notion-column:not(:has(.notion-asset-wrapper)) {
+  flex: 1;
+}
+
+/* 이미지 자체 크기 */
+.notion-about .notion-asset-wrapper {
+  width: 100%;
+  max-width: 100%;
+}
+
+.notion-about .notion-asset-wrapper img {
+  width: 100%;
+  height: auto;
+  border-radius: 0.75rem;   /* 모서리 둥글기 — 0으로 바꾸면 직각 */
+  object-fit: cover;
+}
