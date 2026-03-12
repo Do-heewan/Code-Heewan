@@ -12,7 +12,7 @@ const recordMap = await notion.getPage(process.env.NOTION_ABOUT_PAGE_ID!);
 
 const navigation = [
   { name: "Blog", href: "/blog" },
-  { name: "Algorithms", href: "/algorithms" },
+  { name: "Algorithm", href: "/algorithm" },
   { name: "Projects", href: "/projects" },
   { name: "Contact", href: "/contact" },
 ];
