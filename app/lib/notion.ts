@@ -54,17 +54,21 @@ async function findPageBySlug(
     databaseId: string,
     slug: string,
 ): Promise<PageObjectResponse | null> {
-    const directMatch = await notion.databases.query({
-        database_id: databaseId,
-        filter: {
-            property: "Slug",
-            rich_text: { equals: slug },
-        },
-        page_size: 1,
-    });
+    try {
+        const directMatch = await notion.databases.query({
+            database_id: databaseId,
+            filter: {
+                property: "Slug",
+                rich_text: { equals: slug },
+            },
+            page_size: 1,
+        });
 
-    const directPage = directMatch.results.find(isPageObjectResponse);
-    if (directPage) return directPage;
+        const directPage = directMatch.results.find(isPageObjectResponse);
+        if (directPage) return directPage;
+    } catch {
+        // "Slug" 속성이 DB에 없는 경우 무시하고 자동 생성 slug로 탐색
+    }
 
     const pages = await queryAllPages(databaseId);
     return pages.find((page) => resolvePageSlug(page) === slug) ?? null;
@@ -146,6 +150,7 @@ export type AlgorithmPost = {
     description: string;
     difficulty: string;
     platform: string;
+    url: string | null;
     published: boolean;
 };
 
@@ -158,6 +163,7 @@ function pageToAlgorithmPost(page: PageObjectResponse): AlgorithmPost {
     const descProp = props["Description"] as any;
     const difficultyProp = props["Difficulty"] as any;
     const platformProp = props["Platform"] as any;
+    const urlProp = props["URL"] as any;
     const publishedProp = props["Published"] as any;
 
     return {
@@ -169,6 +175,7 @@ function pageToAlgorithmPost(page: PageObjectResponse): AlgorithmPost {
         description: descProp?.rich_text?.[0]?.plain_text ?? "",
         difficulty: difficultyProp?.select?.name ?? "",
         platform: platformProp?.select?.name ?? "",
+        url: urlProp?.url ?? null,
         published: publishedProp?.checkbox === true,
     };
 }

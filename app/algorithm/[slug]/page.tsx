@@ -78,6 +78,20 @@ export default async function AlgorithmPostPage({ params }: Props) {
 								</span>
 							))}
 						</div>
+					)}<a
+						className="inline-block mt-4 text-sm text-zinc-800"
+					>
+						🔗URL :
+					</a>
+					{post.url && (
+						<a
+							href={post.url}
+							target="_blank"
+							rel="noopener noreferrer"
+							className="inline-block mt-4 text-sm text-zinc-500 hover:text-zinc-800 underline underline-offset-2 transition-colors duration-200"
+						>
+							{post.url}
+						</a>
 					)}
 					<div className="mt-8 w-full h-px bg-zinc-200" />
 				</div>
