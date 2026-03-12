@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getAlgorithmPosts } from "../lib/notion";
 import { Navigation } from "../components/nav";
+import { PlatformBadge, DifficultyBadge } from "../components/algorithmBadge";
 
 export const revalidate = 60;
 
@@ -38,9 +39,15 @@ export default async function AlgorithmPage({
 							className="group py-4 hover:bg-zinc-800/20 -mx-4 px-4 rounded-lg transition-colors duration-200"
 						>
 							<Link href={`/algorithm/${post.slug}`} className="flex items-start justify-between gap-4">
-								<h2 className="text-lg font-semibold text-zinc-200 group-hover:text-white transition-colors duration-200">
-									{post.title}
-								</h2>
+								<div className="flex flex-col gap-1">
+									<h2 className="text-lg font-semibold text-zinc-200 group-hover:text-white transition-colors duration-200">
+										{post.title}
+									</h2>
+									<div className="flex gap-2">
+										<PlatformBadge platform={post.platform} />
+										<DifficultyBadge difficulty={post.difficulty} />
+									</div>
+								</div>
 								<div className="flex flex-col items-end gap-1 shrink-0">
 									{post.tags.length > 0 && (
 										<div className="flex flex-wrap gap-1 justify-end">
