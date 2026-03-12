@@ -54,21 +54,17 @@ async function findPageBySlug(
     databaseId: string,
     slug: string,
 ): Promise<PageObjectResponse | null> {
-    try {
-        const directMatch = await notion.databases.query({
-            database_id: databaseId,
-            filter: {
-                property: "Slug",
-                rich_text: { equals: slug },
-            },
-            page_size: 1,
-        });
+    const directMatch = await notion.databases.query({
+        database_id: databaseId,
+        filter: {
+            property: "Slug",
+            rich_text: { equals: slug },
+        },
+        page_size: 1,
+    });
 
-        const directPage = directMatch.results.find(isPageObjectResponse);
-        if (directPage) return directPage;
-    } catch {
-        // "Slug" 속성이 DB에 없는 경우 무시하고 자동 생성 slug로 탐색
-    }
+    const directPage = directMatch.results.find(isPageObjectResponse);
+    if (directPage) return directPage;
 
     const pages = await queryAllPages(databaseId);
     return pages.find((page) => resolvePageSlug(page) === slug) ?? null;
@@ -150,42 +146,19 @@ export type AlgorithmPost = {
     description: string;
     difficulty: string;
     platform: string;
-    url: string | null;
     published: boolean;
 };
 
-async function resolveRelationTitle(pageId: string): Promise<string> {
-    const page = await notion.pages.retrieve({ page_id: pageId }) as PageObjectResponse;
-    const props = page.properties as any;
-    const titleProp = Object.values(props).find((p: any) => p.type === "title") as any;
-    return titleProp?.title?.[0]?.plain_text ?? "";
-}
-
-async function pageToAlgorithmPost(page: PageObjectResponse): Promise<AlgorithmPost> {
+function pageToAlgorithmPost(page: PageObjectResponse): AlgorithmPost {
     const props = page.properties;
 
     const titleProp = props["Title"] as any;
     const dateProp = props["Date"] as any;
     const tagsProp = props["Algorithm"] as any;
     const descProp = props["Description"] as any;
-    const difficultyProp = props["Diff"] as any;
-
-    const urlProp = props["URL"] as any;
+    const difficultyProp = props["Difficulty"] as any;
+    const platformProp = props["Platform"] as any;
     const publishedProp = props["Published"] as any;
-
-    // difficulty: 관계형 → 연결된 페이지의 title fetch
-    const difficultyRelationId = difficultyProp?.relation?.[0]?.id;
-    const difficulty = difficultyRelationId
-        ? await resolveRelationTitle(difficultyRelationId)
-        : "";
-
-    // platform: difficulty 값으로 판별
-    const BOJ_TIERS = ["브론즈", "실버", "골드", "플래티넘", "다이아", "루비"];
-    const platform = difficulty.toLowerCase().startsWith("level")
-        ? "PS"
-        : BOJ_TIERS.some((tier) => difficulty.startsWith(tier))
-        ? "BOJ"
-        : "";
 
     return {
         id: page.id,
@@ -194,9 +167,8 @@ async function pageToAlgorithmPost(page: PageObjectResponse): Promise<AlgorithmP
         date: dateProp?.date?.start ?? null,
         tags: tagsProp?.multi_select?.map((t: any) => t.name) ?? [],
         description: descProp?.rich_text?.[0]?.plain_text ?? "",
-        difficulty,
-        platform,
-        url: urlProp?.url ?? null,
+        difficulty: difficultyProp?.select?.name ?? "",
+        platform: platformProp?.select?.name ?? "",
         published: publishedProp?.checkbox === true,
     };
 }
@@ -211,7 +183,7 @@ export async function getAlgorithmPosts(): Promise<AlgorithmPost[]> {
         sorts: [{ property: "Date", direction: "descending" }],
     });
 
-    return Promise.all((response.results as PageObjectResponse[]).map(pageToAlgorithmPost));
+    return (response.results as PageObjectResponse[]).map(pageToAlgorithmPost);
 }
 
 export async function getAlgorithmPost(
@@ -223,7 +195,7 @@ export async function getAlgorithmPost(
     );
     if (!page) return null;
 
-    const post = await pageToAlgorithmPost(page);
+    const post = pageToAlgorithmPost(page);
 
     const mdBlocks = await n2m.pageToMarkdown(page.id);
     const markdown = n2m.toMarkdownString(mdBlocks).parent

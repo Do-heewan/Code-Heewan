@@ -98,7 +98,7 @@ export function BlogContent({ markdown }: { markdown: string }) {
 						const mapped = LANGUAGE_MAP[rawLang] ?? rawLang;
 						const language = REGISTERED_LANGUAGES.has(mapped) ? mapped : "plaintext";
 						return (
-							<SyntaxHighlighter style={atomOneDark} language={language} PreTag="div" customStyle={{ borderRadius: "0.75rem", padding: "1.5rem 1.5rem" }}>
+							<SyntaxHighlighter style={atomOneDark} language={language} PreTag="div">
 								{codeContent}
 							</SyntaxHighlighter>
 						);
