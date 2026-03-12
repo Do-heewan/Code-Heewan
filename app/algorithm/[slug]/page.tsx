@@ -1,8 +1,8 @@
 import { notFound } from "next/navigation";
 import { getAlgorithmPost, getAlgorithmPosts } from "../../lib/notion";
 import { Navigation } from "../../components/nav";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
+import { PlatformBadge, DifficultyBadge } from "../../components/algorithmBadge";
+import { BlogContent } from "../../components/BlogContent";
 
 export const revalidate = 60;
 
@@ -17,12 +17,6 @@ export async function generateStaticParams(): Promise<Props["params"][]> {
 	return posts.map((post) => ({ slug: post.slug }));
 }
 
-const difficultyColor: Record<string, string> = {
-	Easy: "text-green-600 bg-green-100",
-	Medium: "text-yellow-600 bg-yellow-100",
-	Hard: "text-red-600 bg-red-100",
-};
-
 export default async function AlgorithmPostPage({ params }: Props) {
 	const result = await getAlgorithmPost(params.slug);
 
@@ -33,73 +27,56 @@ export default async function AlgorithmPostPage({ params }: Props) {
 	const { post, markdown } = result;
 
 	return (
-		<div className="bg-zinc-50 min-h-screen">
+		<div className="relative pb-16">
 			<Navigation />
-			<div className="px-6 pt-24 pb-16 mx-auto max-w-3xl lg:px-8 md:pt-32">
+			<div className="px-6 pt-20 mx-auto max-w-3xl lg:px-8 md:pt-24 lg:pt-32">
 				<div className="mb-8">
-					<div className="flex items-center gap-2 mb-2">
-						{post.difficulty && (
-							<span
-								className={`text-xs px-2 py-1 rounded-full font-medium ${difficultyColor[post.difficulty] ?? "text-zinc-600 bg-zinc-200"}`}
-							>
-								{post.difficulty}
-							</span>
-						)}
-						{post.platform && (
-							<span className="text-xs px-2 py-1 rounded-full bg-zinc-200 text-zinc-700">
-								{post.platform}
-							</span>
-						)}
+					<h1 className="mt-3 text-4xl font-bold tracking-tight text-zinc-100 sm:text-5xl">
+						{post.title}
+					</h1>
+					<div className="flex items-center gap-2 mt-3">
+						<PlatformBadge platform={post.platform} />
+						<DifficultyBadge difficulty={post.difficulty} />
+					</div>
+					{post.tags.length > 0 && (
+						<div className="flex flex-wrap gap-2 mt-4">
+							{post.tags.map((tag) => (
+								<span
+									key={tag}
+									className="text-xs px-2 py-1 rounded-full bg-zinc-800 text-zinc-400"
+								>
+									{tag}
+								</span>
+							))}
+						</div>
+					)}
+					<div className="flex items-center justify-between mt-4">
+						<div className="flex items-center gap-1 text-sm">
+							<span className="text-zinc-400">🔗URL :</span>
+							{post.url && (
+								<a
+									href={post.url}
+									target="_blank"
+									rel="noopener noreferrer"
+									className="text-zinc-500 hover:text-zinc-200 underline underline-offset-2 transition-colors duration-200"
+								>
+									{post.url}
+								</a>
+							)}
+						</div>
 						{post.date && (
-							<time
-								dateTime={post.date}
-								className="text-sm text-zinc-500"
-							>
+							<time dateTime={post.date} className="text-sm text-zinc-500 shrink-0">
 								{Intl.DateTimeFormat("ko-KR", { dateStyle: "long" }).format(
 									new Date(post.date),
 								)}
 							</time>
 						)}
 					</div>
-					<h1 className="mt-3 text-4xl font-bold tracking-tight text-zinc-900 sm:text-5xl font-display">
-						{post.title}
-					</h1>
-					{post.description && (
-						<p className="mt-4 text-lg text-zinc-600">{post.description}</p>
-					)}
-					{post.tags.length > 0 && (
-						<div className="flex flex-wrap gap-2 mt-4">
-							{post.tags.map((tag) => (
-								<span
-									key={tag}
-									className="text-xs px-2 py-1 rounded-full bg-zinc-200 text-zinc-700"
-								>
-									{tag}
-								</span>
-							))}
-						</div>
-					)}<a
-						className="inline-block mt-4 text-sm text-zinc-800"
-					>
-						🔗URL :
-					</a>
-					{post.url && (
-						<a
-							href={post.url}
-							target="_blank"
-							rel="noopener noreferrer"
-							className="inline-block mt-4 text-sm text-zinc-500 hover:text-zinc-800 underline underline-offset-2 transition-colors duration-200"
-						>
-							{post.url}
-						</a>
-					)}
-					<div className="mt-8 w-full h-px bg-zinc-200" />
+					<div className="mt-8 w-full h-px bg-zinc-800" />
 				</div>
 
-				<article className="prose prose-zinc max-w-none">
-					<ReactMarkdown remarkPlugins={[remarkGfm]}>
-						{markdown}
-					</ReactMarkdown>
+				<article className="prose prose-invert prose-zinc max-w-none">
+					<BlogContent markdown={markdown} />
 				</article>
 			</div>
 		</div>
