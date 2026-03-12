@@ -181,3 +181,11 @@ export async function getBlogPost(
 
     return { post, markdown };
 }
+
+export async function getAboutPage(): Promise<string> {
+    const pageId = process.env.NOTION_ABOUT_PAGE_ID;
+    if (!pageId) return "";
+
+    const mdBlocks = await n2m.pageToMarkdown(pageId);
+    return n2m.toMarkdownString(mdBlocks).parent;
+}
