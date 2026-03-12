@@ -36,10 +36,10 @@ export const Navigation: React.FC = () => {
 							Blog
 						</Link>
 						<Link
-							href="/algorithms"
+							href="/algorithm"
 							className="duration-200 text-zinc-400 hover:text-zinc-100"
 						>
-							Algorithms
+							Algorithm
 						</Link>
 						<Link
 							href="/projects"
