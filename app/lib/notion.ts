@@ -16,6 +16,7 @@ export type BlogPost = {
     tags: string[];
     description: string;
     published: boolean;
+    coverImage: string | null;
 };
 
 function resolvePageSlug(page: PageObjectResponse): string {
@@ -69,13 +70,40 @@ async function findPageBySlug(
     return pages.find((page) => resolvePageSlug(page) === slug) ?? null;
 }
 
-function pageToPost(page: PageObjectResponse): BlogPost {
+const TEXT_BLOCK_TYPES = ["paragraph", "heading_1", "heading_2", "heading_3", "bulleted_list_item", "numbered_list_item", "quote", "callout"];
+
+async function getPagePreview(pageId: string): Promise<{ coverImage: string | null; preview: string }> {
+    const response = await notion.blocks.children.list({
+        block_id: pageId,
+        page_size: 50,
+    });
+
+    let coverImage: string | null = null;
+    let preview = "";
+
+    for (const block of response.results) {
+        const b = block as any;
+        if (!coverImage && b.type === "image") {
+            if (b.image?.type === "external") coverImage = b.image.external.url;
+            else if (b.image?.type === "file") coverImage = b.image.file.url;
+        }
+        if (!preview && TEXT_BLOCK_TYPES.includes(b.type)) {
+            const richText = b[b.type]?.rich_text ?? [];
+            const text = richText.map((t: any) => t.plain_text).join("").trim();
+            if (text) preview = text;
+        }
+        if (coverImage && preview) break;
+    }
+
+    return { coverImage, preview };
+}
+
+function pageToPost(page: PageObjectResponse, coverImage: string | null, preview: string): BlogPost {
     const props = page.properties;
 
     const titleProp = props["Title"] as any;
     const dateProp = props["Date"] as any;
     const tagsProp = props["Algorithms"] as any;
-    const descProp = props["Description"] as any;
     const publishedProp = props["Published"] as any;
 
     return {
@@ -84,8 +112,9 @@ function pageToPost(page: PageObjectResponse): BlogPost {
         slug: resolvePageSlug(page),
         date: dateProp?.date?.start ?? null,
         tags: tagsProp?.multi_select?.map((t: any) => t.name) ?? [],
-        description: descProp?.rich_text?.[0]?.plain_text ?? "",
-        published: publishedProp?.checkbox === true,
+        description: preview,
+        published: publishedProp?.status === "Published",
+        coverImage,
     };
 }
 
@@ -94,12 +123,18 @@ export async function getBlogPosts(): Promise<BlogPost[]> {
         database_id: process.env.NOTION_BLOG_DATABASE_ID!,
         filter: {
             property: "Status",
-            checkbox: { equals: true },
+            status: { equals: "Published" },
         },
         sorts: [{ property: "Date", direction: "descending" }],
     });
 
-    return (response.results as PageObjectResponse[]).map(pageToPost);
+    const pages = response.results as PageObjectResponse[];
+    return Promise.all(
+        pages.map(async (page) => {
+            const { coverImage, preview } = await getPagePreview(page.id);
+            return pageToPost(page, coverImage, preview);
+        })
+    );
 }
 
 export type AlgorithmPost = {
@@ -163,7 +198,8 @@ export async function getAlgorithmPost(
     const post = pageToAlgorithmPost(page);
 
     const mdBlocks = await n2m.pageToMarkdown(page.id);
-    const markdown = n2m.toMarkdownString(mdBlocks).parent;
+    const markdown = n2m.toMarkdownString(mdBlocks).parent
+        .replace(/\\([*_~`])/g, "$1");
 
     return { post, markdown };
 }
@@ -174,10 +210,12 @@ export async function getBlogPost(
     const page = await findPageBySlug(process.env.NOTION_BLOG_DATABASE_ID!, slug);
     if (!page) return null;
 
-    const post = pageToPost(page);
+    const { coverImage, preview } = await getPagePreview(page.id);
+    const post = pageToPost(page, coverImage, preview);
 
     const mdBlocks = await n2m.pageToMarkdown(page.id);
-    const markdown = n2m.toMarkdownString(mdBlocks).parent;
+    const markdown = n2m.toMarkdownString(mdBlocks).parent
+        .replace(/\\([*_~`])/g, "$1");
 
     return { post, markdown };
 }
