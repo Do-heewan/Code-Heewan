@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { getBlogPost, getBlogPosts } from "../../lib/notion";
+import { getAlgorithmPost, getAlgorithmPosts } from "../../lib/notion";
 import { Navigation } from "../../components/nav";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -13,12 +13,18 @@ type Props = {
 };
 
 export async function generateStaticParams(): Promise<Props["params"][]> {
-	const posts = await getBlogPosts();
+	const posts = await getAlgorithmPosts();
 	return posts.map((post) => ({ slug: post.slug }));
 }
 
-export default async function BlogPostPage({ params }: Props) {
-	const result = await getBlogPost(params.slug);
+const difficultyColor: Record<string, string> = {
+	Easy: "text-green-600 bg-green-100",
+	Medium: "text-yellow-600 bg-yellow-100",
+	Hard: "text-red-600 bg-red-100",
+};
+
+export default async function AlgorithmPostPage({ params }: Props) {
+	const result = await getAlgorithmPost(params.slug);
 
 	if (!result) {
 		notFound();
@@ -31,16 +37,30 @@ export default async function BlogPostPage({ params }: Props) {
 			<Navigation />
 			<div className="px-6 pt-24 pb-16 mx-auto max-w-3xl lg:px-8 md:pt-32">
 				<div className="mb-8">
-					{post.date && (
-						<time
-							dateTime={post.date}
-							className="text-sm text-zinc-500"
-						>
-							{Intl.DateTimeFormat("ko-KR", { dateStyle: "long" }).format(
-								new Date(post.date),
-							)}
-						</time>
-					)}
+					<div className="flex items-center gap-2 mb-2">
+						{post.difficulty && (
+							<span
+								className={`text-xs px-2 py-1 rounded-full font-medium ${difficultyColor[post.difficulty] ?? "text-zinc-600 bg-zinc-200"}`}
+							>
+								{post.difficulty}
+							</span>
+						)}
+						{post.platform && (
+							<span className="text-xs px-2 py-1 rounded-full bg-zinc-200 text-zinc-700">
+								{post.platform}
+							</span>
+						)}
+						{post.date && (
+							<time
+								dateTime={post.date}
+								className="text-sm text-zinc-500"
+							>
+								{Intl.DateTimeFormat("ko-KR", { dateStyle: "long" }).format(
+									new Date(post.date),
+								)}
+							</time>
+						)}
+					</div>
 					<h1 className="mt-3 text-4xl font-bold tracking-tight text-zinc-900 sm:text-5xl font-display">
 						{post.title}
 					</h1>
