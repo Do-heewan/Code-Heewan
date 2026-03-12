@@ -12,6 +12,7 @@
     "@next/font": "^13.5.4",
     "@next/mdx": "^13.5.4",
     "@notionhq/client": "^2.2.15",
+    "@types/react-syntax-highlighter": "^15.5.13",
     "@upstash/redis": "^1.23.3",
     "contentlayer": "^0.3.4",
     "framer-motion": "^10.16.4",
@@ -25,11 +26,15 @@
     "react-dom": "^18.2.0",
     "react-markdown": "^8.0.7",
     "react-notion-x": "^7.8.3",
+    "react-syntax-highlighter": "^16.1.1",
     "react-wrap-balancer": "^1.1.0",
     "rehype-autolink-headings": "^7.0.0",
+    "rehype-katex": "^7.0.1",
     "rehype-pretty-code": "^0.10.1",
+    "rehype-raw": "^7.0.0",
     "rehype-slug": "^6.0.0",
     "remark-gfm": "3.0.1",
+    "remark-math": "^6.0.0",
     "typescript": "^5.2.2"
   },
   "devDependencies": {

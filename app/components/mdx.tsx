@@ -1,12 +1,25 @@
 // @ts-nocheck
 import * as React from "react";
-import Image from "next/image";
+import Image, { type ImageProps } from "next/image";
 import Link from "next/link";
 import { useMDXComponent } from "next-contentlayer/hooks";
 
 function clsx(...args: any) {
 	return args.filter(Boolean).join(" ");
 }
+
+function MdxImage({ className, alt, ...props }: ImageProps) {
+	return (
+		<div className="my-6 flex justify-center">
+			<Image
+				className={clsx("rounded-md border border-zinc-200", className)}
+				alt={alt}
+				{...props}
+			/>
+		</div>
+	);
+}
+
 const components = {
 	h1: ({ className, ...props }) => (
 		<h1
@@ -102,7 +115,7 @@ const components = {
 	}: React.ImgHTMLAttributes<HTMLImageElement>) => (
 		// eslint-disable-next-line @next/next/no-img-element
 		<img
-			className={clsx("rounded-md border border-zinc-200", className)}
+			className={clsx("block rounded-md border border-zinc-200 mx-auto", className)}
 			alt={alt}
 			{...props}
 		/>
@@ -160,7 +173,7 @@ const components = {
 			{...props}
 		/>
 	),
-	Image,
+	Image: MdxImage,
 };
 
 interface MdxProps {

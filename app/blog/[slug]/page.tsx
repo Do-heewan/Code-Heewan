@@ -1,8 +1,7 @@
 import { notFound } from "next/navigation";
 import { getBlogPost, getBlogPosts } from "../../lib/notion";
 import { Navigation } from "../../components/nav";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
+import { BlogContent } from "../../components/BlogContent";
 
 export const revalidate = 60;
 
@@ -27,9 +26,9 @@ export default async function BlogPostPage({ params }: Props) {
 	const { post, markdown } = result;
 
 	return (
-		<div className="bg-zinc-50 min-h-screen">
+		<div className="relative pb-16">
 			<Navigation />
-			<div className="px-6 pt-24 pb-16 mx-auto max-w-3xl lg:px-8 md:pt-32">
+			<div className="px-6 pt-20 mx-auto max-w-3xl lg:px-8 md:pt-24 lg:pt-32">
 				<div className="mb-8">
 					{post.date && (
 						<time
@@ -41,31 +40,26 @@ export default async function BlogPostPage({ params }: Props) {
 							)}
 						</time>
 					)}
-					<h1 className="mt-3 text-4xl font-bold tracking-tight text-zinc-900 sm:text-5xl font-display">
+					<h1 className="mt-3 text-4xl font-bold tracking-tight text-zinc-100 sm:text-5xl">
 						{post.title}
 					</h1>
-					{post.description && (
-						<p className="mt-4 text-lg text-zinc-600">{post.description}</p>
-					)}
 					{post.tags.length > 0 && (
 						<div className="flex flex-wrap gap-2 mt-4">
 							{post.tags.map((tag) => (
 								<span
 									key={tag}
-									className="text-xs px-2 py-1 rounded-full bg-zinc-200 text-zinc-700"
+									className="text-xs px-2 py-1 rounded-full bg-zinc-800 text-zinc-400"
 								>
 									{tag}
 								</span>
 							))}
 						</div>
 					)}
-					<div className="mt-8 w-full h-px bg-zinc-200" />
+					<div className="mt-8 w-full h-px bg-zinc-800" />
 				</div>
 
-				<article className="prose prose-zinc max-w-none">
-					<ReactMarkdown remarkPlugins={[remarkGfm]}>
-						{markdown}
-					</ReactMarkdown>
+				<article className="prose prose-invert prose-zinc max-w-none">
+					<BlogContent markdown={markdown} />
 				</article>
 			</div>
 		</div>
