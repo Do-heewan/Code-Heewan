@@ -1,22 +1,41 @@
 import Link from "next/link";
+import Image from "next/image";
 import { getAlgorithmPosts } from "../lib/notion";
 import { Navigation } from "../components/nav";
-import { PlatformBadge, DifficultyBadge } from "../components/algorithmBadge";
+import { DifficultyBadge } from "../components/algorithmBadge";
 
 export const revalidate = 60;
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 30;
 
+const PLATFORM_FILTERS = [
+	{ label: "전체", value: "" },
+	{ label: "BOJ", value: "BOJ" },
+	{ label: "PS", value: "PS" },
+];
 
 export default async function AlgorithmPage({
 	searchParams,
 }: {
-	searchParams: { page?: string };
+	searchParams: { page?: string; platform?: string };
 }) {
 	const allPosts = await getAlgorithmPosts();
+	const platform = searchParams.platform ?? "";
+	const filteredPosts = platform
+		? allPosts.filter((p) => p.platform === platform)
+		: allPosts;
+
 	const currentPage = Math.max(1, parseInt(searchParams.page ?? "1", 10));
-	const totalPages = Math.ceil(allPosts.length / PAGE_SIZE);
-	const posts = allPosts.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+	const totalPages = Math.ceil(filteredPosts.length / PAGE_SIZE);
+	const posts = filteredPosts.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+
+	function pageHref(page: number) {
+		const params = new URLSearchParams();
+		if (platform) params.set("platform", platform);
+		if (page > 1) params.set("page", String(page));
+		const qs = params.toString();
+		return qs ? `/algorithm?${qs}` : "/algorithm";
+	}
 
 	return (
 		<div className="relative pb-16">
@@ -32,63 +51,70 @@ export default async function AlgorithmPage({
 				</div>
 				<div className="w-full h-px bg-zinc-800 mb-8" />
 
-				<div className="flex flex-col divide-y divide-zinc-800">
-					{posts.map((post) => (
-						<div
-							key={post.id}
-							className="group py-4 hover:bg-zinc-800/20 -mx-4 px-4 rounded-lg transition-colors duration-200"
+				{/* 플랫폼 필터 */}
+				<div className="flex gap-2 mb-6">
+					{PLATFORM_FILTERS.map((filter) => (
+						<Link
+							key={filter.value}
+							href={filter.value ? `/algorithm?platform=${filter.value}` : "/algorithm"}
+							className={`px-4 py-1.5 text-sm rounded-full transition-colors duration-200 ${platform === filter.value
+								? "bg-zinc-100 text-zinc-900 font-medium"
+								: "bg-zinc-800/50 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800"
+								}`}
 						>
-							<Link href={`/algorithm/${post.slug}`} className="flex items-start justify-between gap-4">
-								<div className="flex flex-col gap-1">
-									<h2 className="text-lg font-semibold text-zinc-200 group-hover:text-white transition-colors duration-200">
-										{post.title}
-									</h2>
-									<div className="flex gap-2">
-										<PlatformBadge platform={post.platform} />
-										<DifficultyBadge difficulty={post.difficulty} />
-									</div>
-								</div>
-								<div className="flex flex-col items-end gap-1 shrink-0">
-									{post.tags.length > 0 && (
-										<div className="flex flex-wrap gap-1 justify-end">
-											{post.tags.map((tag) => (
-												<span
-													key={tag}
-													className="text-xs px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-400"
-												>
-													{tag}
-												</span>
-											))}
-										</div>
-									)}
+							{filter.label}
+						</Link>
+					))}
+				</div>
 
-								</div>
-							</Link>
-							{/* {post.url && (
-								<a
-									href={post.url}
-									target="_blank"
-									rel="noopener noreferrer"
-									className="mt-0.5 text-xs text-zinc-500 hover:text-zinc-300 truncate block transition-colors duration-200"
-								>
-									{post.url}
-								</a>
-							)} */}
-							{post.date ? (
-								<time dateTime={post.date} className="text-xs text-zinc-500">
-									{Intl.DateTimeFormat("ko-KR", { dateStyle: "medium" }).format(
-										new Date(post.date)
-									)}
-								</time>
-							) : (
-								<span className="text-xs text-zinc-500">SOON</span>
-							)}
-							{post.description && (
-								<p className="mt-1 text-sm text-zinc-500 line-clamp-2">
-									{post.description}
-								</p>
-							)}
-						</div>
+				<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+					{posts.map((post) => (
+						<Link
+							key={post.id}
+							href={`/algorithm/${post.slug}`}
+							className="group flex flex-col rounded-xl overflow-hidden bg-zinc-800/40 border border-zinc-700/50 hover:border-zinc-600 hover:bg-zinc-800/70 transition-all duration-200"
+						>
+							<div className="relative w-full aspect-video bg-zinc-800">
+								{post.coverImage ? (
+									<Image
+										src={post.coverImage}
+										alt={post.title}
+										fill
+										className="object-cover"
+										sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+									/>
+								) : (
+									<div className="absolute inset-0 flex items-center justify-center text-zinc-600 text-sm">
+										No Image
+									</div>
+								)}
+							</div>
+							<div className="flex flex-col gap-2 p-4">
+								<h2 className="text-base font-semibold text-zinc-200 group-hover:text-white transition-colors duration-200 line-clamp-2">
+									{/* <DifficultyBadge difficulty={post.difficulty} /> */}
+									{post.title}
+
+								</h2>
+
+								{/* {post.tags.length > 0 && (
+									<div className="flex flex-wrap gap-1">
+										{post.tags.map((tag) => (
+											<span
+												key={tag}
+												className="text-xs px-2 py-0.5 rounded-full bg-zinc-700 text-zinc-400"
+											>
+												{tag}
+											</span>
+										))}
+									</div>
+								)} */}
+								<span className="mt-auto pt-1 text-xs text-zinc-500">
+									{post.date
+										? Intl.DateTimeFormat("ko-KR", { dateStyle: "medium" }).format(new Date(post.date))
+										: "SOON"}
+								</span>
+							</div>
+						</Link>
 					))}
 				</div>
 
@@ -96,7 +122,7 @@ export default async function AlgorithmPage({
 					<div className="flex items-center justify-center gap-2 mt-12">
 						{currentPage > 1 && (
 							<Link
-								href={`/algorithm?page=${currentPage - 1}`}
+								href={pageHref(currentPage - 1)}
 								className="px-3 py-1.5 text-sm text-zinc-400 hover:text-zinc-100 bg-zinc-800/50 hover:bg-zinc-800 rounded-md transition-colors duration-200"
 							>
 								← 이전
@@ -105,7 +131,7 @@ export default async function AlgorithmPage({
 						{Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
 							<Link
 								key={page}
-								href={`/algorithm?page=${page}`}
+								href={pageHref(page)}
 								className={`px-3 py-1.5 text-sm rounded-md transition-colors duration-200 ${page === currentPage
 									? "bg-zinc-100 text-zinc-900 font-medium"
 									: "text-zinc-400 hover:text-zinc-100 bg-zinc-800/50 hover:bg-zinc-800"
@@ -116,7 +142,7 @@ export default async function AlgorithmPage({
 						))}
 						{currentPage < totalPages && (
 							<Link
-								href={`/algorithm?page=${currentPage + 1}`}
+								href={pageHref(currentPage + 1)}
 								className="px-3 py-1.5 text-sm text-zinc-400 hover:text-zinc-100 bg-zinc-800/50 hover:bg-zinc-800 rounded-md transition-colors duration-200"
 							>
 								다음 →

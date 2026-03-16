@@ -152,6 +152,7 @@ export type AlgorithmPost = {
     platform: string;
     url: string | null;
     published: boolean;
+    coverImage: string | null;
 };
 
 async function resolveRelationTitle(pageId: string): Promise<string> {
@@ -184,8 +185,10 @@ async function pageToAlgorithmPost(page: PageObjectResponse): Promise<AlgorithmP
     const platform = difficulty.toLowerCase().startsWith("level")
         ? "PS"
         : BOJ_TIERS.some((tier) => difficulty.startsWith(tier))
-        ? "BOJ"
-        : "";
+            ? "BOJ"
+            : "";
+
+    const { coverImage } = await getPagePreview(page.id);
 
     return {
         id: page.id,
@@ -198,6 +201,7 @@ async function pageToAlgorithmPost(page: PageObjectResponse): Promise<AlgorithmP
         platform,
         url: urlProp?.url ?? null,
         published: publishedProp?.checkbox === true,
+        coverImage,
     };
 }
 
